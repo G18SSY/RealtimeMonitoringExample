@@ -4,13 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
-        xmlns:lcc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
         <local:Vm/>
     </Window.DataContext>
     <Grid>
-        <lcc:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}" IsHitTestVisible="False"></lcc:CartesianChart>
+        <oxy:PlotView Model="{Binding Model}" Controller="{Binding Controller}"/>
     </Grid>
 </Window>

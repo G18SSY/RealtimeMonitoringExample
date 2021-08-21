@@ -1,19 +1,15 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Timers;
 using System.Windows.Threading;
-using LiveChartsCore;
-using LiveChartsCore.Defaults;
-using LiveChartsCore.Kernel.Sketches;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Painting;
-using SkiaSharp;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
 
 namespace WpfApp1
 {
     public class Vm
     {
-        private readonly ObservableCollection<ObservablePoint> data = new();
+        private readonly ObservableCollection<FauxData> data = new();
 
         private readonly DispatcherTimer fauxDataTimer = new()
         {
@@ -29,36 +25,46 @@ namespace WpfApp1
 
         private readonly DateTime start = DateTime.Now;
 
-        private readonly Axis xAxis = new()
+        private readonly Axis xAxis = new LinearAxis
         {
-            Labeler = Labeler,
-            MinStep = 5,
-            ForceStepToMin = true
+            LabelFormatter = Labeler,
+            MajorStep = 5,
+            Position = AxisPosition.Bottom,
+            TickStyle = TickStyle.None
         };
 
-        private static string Labeler(double d)
+        private readonly Axis yAxis = new LinearAxis
         {
-            if(d<0)
-                return string.Empty;
-            
-            return d.ToString("F0") + "s";
-        }
+            Position = AxisPosition.Left,
+            TickStyle = TickStyle.None,
+            MajorStep = 5000,
+            Minimum = 0,
+            Maximum = 10000
+        };
 
         public Vm()
         {
-           XAxes.Add(xAxis);
+            Controller.UnbindAll();
 
-            Series.Add(new LineSeries<ObservablePoint>
+            Model.Axes.Add(xAxis);
+            Model.Axes.Add(yAxis);
+            AreaSeries areaSeries = new()
             {
-                GeometrySize = 0,
-                Fill = new SolidColorPaint(SKColor.Parse("#d853fc").WithAlpha(50)),
-                LineSmoothness = 0,
-                Stroke = new SolidColorPaint(SKColors.Blue)
+                ConstantY2 = -1000,
+                Fill = OxyColor.FromArgb(100, 52, 183, 235),
+                StrokeThickness = 2,
+                Color = OxyColor.FromRgb(52, 183, 235),
+                Color2 = OxyColors.Transparent,
+                Mapping = o =>
                 {
-                    StrokeThickness = 2
+                    (DateTime timestamp, double value) = (FauxData)o;
+                    double x = (timestamp - start).TotalSeconds;
+
+                    return new DataPoint(x, value);
                 },
-                Values = data
-            });
+                ItemsSource = data
+            };
+            Model.Series.Add(areaSeries);
 
             fauxDataTimer.Tick += AddMoreData;
             scrollerTimer.Tick += ScrollMore;
@@ -67,15 +73,25 @@ namespace WpfApp1
             scrollerTimer.Start();
         }
 
-        public ObservableCollection<ISeries> Series { get; } = new();
-        public ObservableCollection<IAxis> XAxes { get; } = new();
+        public PlotModel Model { get; } = new();
+        public PlotController Controller { get; } = new();
+
+        private static string Labeler(double d)
+        {
+            if (d < 0)
+                return string.Empty;
+
+            return d.ToString("F0") + "s";
+        }
 
         private void ScrollMore(object? sender, EventArgs eventArgs)
         {
             double totalSeconds = (DateTime.Now - start).TotalSeconds;
 
-            xAxis.MinLimit = totalSeconds - 60;
-            xAxis.MaxLimit = totalSeconds;
+            xAxis.Minimum = totalSeconds - 60;
+            xAxis.Maximum = totalSeconds;
+
+            Model.InvalidatePlot(false);
         }
 
         private void AddMoreData(object? sender, EventArgs eventArgs)
@@ -85,10 +101,10 @@ namespace WpfApp1
             if (next < 1000)
                 next = 0;
 
-            double x = (DateTime.Now - start).TotalSeconds;
-            data.Add(new ObservablePoint(x, next));
+            FauxData dataItem = new(DateTime.Now, next);
+            data.Add(dataItem);
+
+            Model.InvalidatePlot(true);
         }
     }
-
-    public record FauxData(DateTime Timestamp, double Value);
 }

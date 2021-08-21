@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-beta.60" />
+      <PackageReference Include="OxyPlot.Wpf" Version="2.0.0" />
     </ItemGroup>
 
 </Project>
