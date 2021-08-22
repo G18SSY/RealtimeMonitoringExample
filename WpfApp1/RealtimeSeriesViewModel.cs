@@ -1,6 +1,7 @@
 ﻿using System.Windows.Media;
 using OxyPlot;
 using OxyPlot.Wpf;
+using WpfApp1.Wpf;
 using AreaSeries = OxyPlot.Series.AreaSeries;
 
 namespace WpfApp1

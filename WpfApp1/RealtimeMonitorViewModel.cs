@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
+using WpfApp1.Wpf;
 
 namespace WpfApp1
 {
