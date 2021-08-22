@@ -11,21 +11,14 @@ using WpfApp1.Wpf;
 namespace WpfApp1
 {
     public class RealtimeMonitorViewModel<T> : ViewModel, IRealtimeMonitorViewModel
+        where T : notnull
     {
         private readonly Queue<OxyColor> availableColors = new(GenerateColorOrder());
-
-        private static IEnumerable<OxyColor> GenerateColorOrder()
-        {
-            yield return OxyColor.Parse("#4575b4");
-            yield return OxyColor.Parse("#91bfdb");
-            yield return OxyColor.Parse("#e0f3f8");
-        }
 
         private readonly TimeBoundCollection<T> data;
         private readonly RealtimeSampleOptions<T> options;
         private readonly DispatcherTimer samplingTimer = new();
         private readonly DispatcherTimer scrollerTimer = new();
-        private DateTime start = DateTime.Now;
 
         private readonly Axis xAxis = new LinearAxis
         {
@@ -48,6 +41,8 @@ namespace WpfApp1
         private bool isEnabled = true;
         private TimeSpan samplingInterval;
         private bool smoothScroll;
+
+        private DateTime start = DateTime.Now;
         private TimeSpan visibleDuration;
 
         internal RealtimeMonitorViewModel(RealtimeSampleOptions<T> options, IEnumerable<TimeSpan> visibleDurations,
@@ -71,40 +66,9 @@ namespace WpfApp1
 
             RestartCommand = new Command(Reset);
             StopCommand = new Command(Stop);
-            
+
             RefreshScrollerTimer();
             RefreshSamplingTimer();
-        }
-
-        private void Stop()
-        {
-            IsEnabled = false;
-        }
-
-        private void Reset()
-        {
-            data.Clear();
-            start = DateTime.Now;
-            IsEnabled = true;
-            
-            UpdateScroll(true);
-            
-            RefreshSamplingTimer();
-            RefreshScrollerTimer();
-        }
-
-        private void RefreshSamplingTimer()
-        {
-            samplingTimer.Interval = SamplingInterval;
-            
-            if (IsEnabled)
-            {
-                samplingTimer.Start();
-            }
-            else
-            {
-                samplingTimer.Stop();
-            }
         }
 
         public bool SmoothScroll
@@ -125,9 +89,7 @@ namespace WpfApp1
             set
             {
                 if (SetProperty(ref visibleDuration, GetClosestFromList(PossibleVisibleDurations, value)))
-                {
                     UpdateScroll(true);
-                }
             }
         }
 
@@ -139,9 +101,7 @@ namespace WpfApp1
             set
             {
                 if (SetProperty(ref samplingInterval, GetClosestFromList(PossibleSamplingIntervals, value)))
-                {
                     RefreshSamplingTimer();
-                }
             }
         }
 
@@ -161,12 +121,48 @@ namespace WpfApp1
         public PlotModel Model { get; } = new();
 
         public PlotController Controller { get; } = new();
-        
+
         public ICommand RestartCommand { get; }
-        
+
         public ICommand StopCommand { get; }
 
         public IReadOnlyList<RealtimeSeriesViewModel> Series { get; }
+
+        private static IEnumerable<OxyColor> GenerateColorOrder()
+        {
+            yield return OxyColor.Parse("#4575b4");
+            yield return OxyColor.Parse("#91bfdb");
+            yield return OxyColor.Parse("#e0f3f8");
+        }
+
+        private void Stop()
+        {
+            IsEnabled = false;
+        }
+
+        private void Reset()
+        {
+            IsEnabled = false;
+
+            data.Clear();
+            start = DateTime.Now;
+
+            foreach (RealtimeSeriesViewModel series in Series) series.ResetStats();
+
+            IsEnabled = true;
+
+            UpdateScroll(true);
+        }
+
+        private void RefreshSamplingTimer()
+        {
+            samplingTimer.Interval = SamplingInterval;
+
+            if (IsEnabled)
+                samplingTimer.Start();
+            else
+                samplingTimer.Stop();
+        }
 
         private void InitializeController()
             => Controller.UnbindAll();
@@ -181,7 +177,11 @@ namespace WpfApp1
                 AreaSeries series = CreateSampleSeries(seriesOptions);
                 Model.Series.Add(series);
 
-                yield return new RealtimeSeriesViewModel(seriesOptions.Title, series, Model);
+                yield return new RealtimeSeriesViewModel(seriesOptions.Title,
+                    seriesOptions.Unit,
+                    series,
+                    Model,
+                    seriesOptions.GetValueFromSample);
             }
         }
 
@@ -228,13 +228,9 @@ namespace WpfApp1
             scrollerTimer.Interval = TimeSpan.FromMilliseconds(20);
 
             if (SmoothScroll && IsEnabled)
-            {
                 scrollerTimer.Start();
-            }
             else
-            {
                 scrollerTimer.Stop();
-            }
         }
 
         private static string Labeler(double d)
@@ -265,10 +261,13 @@ namespace WpfApp1
         private void Sample()
         {
             T sample = options.TakeSample();
+
             data.Add(sample);
 
             if (!SmoothScroll)
                 UpdateScroll(false);
+
+            foreach (RealtimeSeriesViewModel series in Series) series.PushSampleStats(sample);
 
             Model.InvalidatePlot(true);
         }

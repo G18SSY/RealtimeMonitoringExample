@@ -17,9 +17,9 @@ namespace WpfApp1
 
         public IReadOnlyList<RealtimeSeriesOptions<T>> Series => series;
 
-        public RealtimeSampleOptions<T> WithSeries(string title, Func<T, double> valueCallback)
+        public RealtimeSampleOptions<T> WithSeries(string title, Func<T, double> valueCallback, string? unit = null)
         {
-            series.Add(new RealtimeSeriesOptions<T>(title, valueCallback));
+            series.Add(new RealtimeSeriesOptions<T>(title, unit, valueCallback));
 
             return this;
         }

@@ -28,8 +28,8 @@ namespace WpfApp1
 
             RealtimeSampleOptions<FauxData> options =
                 new RealtimeSampleOptions<FauxData>(f => f.Timestamp, FauxData.GetFaux)
-                    .WithSeries("Upload", f => f.Upload)
-                    .WithSeries("Download", f => f.Download);
+                    .WithSeries("Upload", f => f.Upload, "B")
+                    .WithSeries("Download", f => f.Download, "B");
 
             DataContext = new RealtimeMonitorViewModel<FauxData>(options,
                 testVisibleDurations,
