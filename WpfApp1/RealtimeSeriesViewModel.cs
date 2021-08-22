@@ -39,7 +39,7 @@ namespace WpfApp1
                 if (SetProperty(ref isVisible, value))
                 {
                     series.IsVisible = value;
-                    model.InvalidatePlot(false);
+                    model.InvalidatePlot(true);
                 }
             }
         }
