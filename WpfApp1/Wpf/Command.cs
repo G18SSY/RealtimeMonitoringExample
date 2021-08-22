@@ -7,6 +7,8 @@ namespace WpfApp1.Wpf
     {
         private readonly Action<object?> action;
 
+        public Command(Action action) : this(o => action()) { }
+
         public Command(Action<object?> action)
         {
             this.action = action;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Input;
 using System.Windows.Threading;
 using OxyPlot;
 using OxyPlot.Axes;
@@ -24,7 +25,7 @@ namespace WpfApp1
         private readonly RealtimeSampleOptions<T> options;
         private readonly DispatcherTimer samplingTimer = new();
         private readonly DispatcherTimer scrollerTimer = new();
-        private readonly DateTime start = DateTime.Now;
+        private DateTime start = DateTime.Now;
 
         private readonly Axis xAxis = new LinearAxis
         {
@@ -68,8 +69,28 @@ namespace WpfApp1
             samplingTimer.Tick += Sample;
             scrollerTimer.Tick += UpdateScroll;
 
+            RestartCommand = new Command(Reset);
+            StopCommand = new Command(Stop);
+            
             RefreshScrollerTimer();
             RefreshSamplingTimer();
+        }
+
+        private void Stop()
+        {
+            IsEnabled = false;
+        }
+
+        private void Reset()
+        {
+            data.Clear();
+            start = DateTime.Now;
+            IsEnabled = true;
+            
+            UpdateScroll(true);
+            
+            RefreshSamplingTimer();
+            RefreshScrollerTimer();
         }
 
         private void RefreshSamplingTimer()
@@ -140,6 +161,10 @@ namespace WpfApp1
         public PlotModel Model { get; } = new();
 
         public PlotController Controller { get; } = new();
+        
+        public ICommand RestartCommand { get; }
+        
+        public ICommand StopCommand { get; }
 
         public IReadOnlyList<RealtimeSeriesViewModel> Series { get; }
 

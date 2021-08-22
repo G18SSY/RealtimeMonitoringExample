@@ -12,15 +12,21 @@
         <StackPanel DockPanel.Dock="Right"
                     Orientation="Vertical"
                     VerticalAlignment="Top"
+                    Visibility="{Binding IsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Margin="10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Command="{Binding StopCommand}" Margin="5">Stop</Button>
+                <Button Command="{Binding RestartCommand}" Margin="5">Reset</Button>
+            </StackPanel>
+
             <CheckBox IsChecked="{Binding SmoothScroll}">Smooth scroll</CheckBox>
             <ComboBox Margin="5" Width="150"
-                      ItemsSource="{Binding PossibleVisibleDurations}" 
-                      SelectedItem="{Binding VisibleDuration}"/>
+                      ItemsSource="{Binding PossibleVisibleDurations}"
+                      SelectedItem="{Binding VisibleDuration}" />
             <ComboBox Margin="5" Width="150"
-                      ItemsSource="{Binding PossibleSamplingIntervals}" 
-                      SelectedItem="{Binding SamplingInterval}"/>
-            
+                      ItemsSource="{Binding PossibleSamplingIntervals}"
+                      SelectedItem="{Binding SamplingInterval}" />
+
             <ItemsControl ItemsSource="{Binding Series}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -46,6 +52,16 @@
             </ItemsControl>
         </StackPanel>
 
-        <oxy:PlotView Model="{Binding Model}" Controller="{Binding Controller}" />
+        <Grid>
+            <oxy:PlotView Model="{Binding Model}" Controller="{Binding Controller}"
+                          Visibility="{Binding IsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+
+            <Button Visibility="{Binding IsEnabled, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
+                    Command="{Binding RestartCommand}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                Restart
+            </Button>
+        </Grid>
     </DockPanel>
 </Window>

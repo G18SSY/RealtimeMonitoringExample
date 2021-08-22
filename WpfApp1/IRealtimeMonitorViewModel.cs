@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Windows.Input;
 using OxyPlot;
 
 namespace WpfApp1
@@ -16,6 +16,9 @@ namespace WpfApp1
         PlotModel Model { get; }
         PlotController Controller { get; }
         IReadOnlyList<RealtimeSeriesViewModel> Series { get; }
-        event PropertyChangedEventHandler? PropertyChanged;
+
+        ICommand RestartCommand { get; }
+
+        ICommand StopCommand { get; }
     }
 }

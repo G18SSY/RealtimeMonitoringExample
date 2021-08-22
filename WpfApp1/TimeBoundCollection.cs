@@ -57,5 +57,10 @@ namespace WpfApp1
                 autoDequeueSemaphore.Release();
             }
         }
+
+        public void Clear()
+        {
+            queue.Clear();
+        }
     }
 }
