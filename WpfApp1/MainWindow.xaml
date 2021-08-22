@@ -6,11 +6,18 @@
         xmlns:local="clr-namespace:WpfApp1"
         xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800"
+        Background="#292929" Foreground="White">
     <Window.DataContext>
-        <local:Vm/>
+        <local:RealtimeMonitorViewModel/>
     </Window.DataContext>
-    <Grid>
-        <oxy:PlotView Model="{Binding Model}" Controller="{Binding Controller}"/>
-    </Grid>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top"
+                    Orientation="Horizontal" HorizontalAlignment="Right"
+                    Margin="10">
+            <CheckBox IsChecked="{Binding SmoothScroll}">Smooth scroll</CheckBox>
+        </StackPanel>
+        
+        <oxy:PlotView Background="#292929" Model="{Binding Model}" Controller="{Binding Controller}"/>
+    </DockPanel>
 </Window>
