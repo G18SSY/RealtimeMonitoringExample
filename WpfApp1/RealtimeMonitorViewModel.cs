@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Threading;
 using OxyPlot;
 using OxyPlot.Axes;
@@ -6,17 +8,10 @@ using OxyPlot.Series;
 
 namespace WpfApp1
 {
-    public class RealtimeMonitorViewModel : ViewModel
+    public class RealtimeMonitorViewModel<T> : ViewModel, IRealtimeMonitorViewModel
     {
-        // --------------- To be used in constructor
-        private static readonly TimeSpan visibleDuration = TimeSpan.FromSeconds(30);
-        private static readonly TimeSpan samplingInterval = TimeSpan.FromSeconds(1);
-        private static readonly Func<FauxData> samplingCallback = FauxData.GetFaux;
-        // --------------- To be used in constructor
-
-        private readonly TimeBoundCollection<FauxData> data = new((ref FauxData value) => value.Timestamp,
-            visibleDuration + TimeSpan.FromSeconds(1));
-
+        private readonly TimeBoundCollection<T> data;
+        private readonly RealtimeSampleOptions<T> options;
         private readonly DispatcherTimer samplingTimer = new();
         private readonly DispatcherTimer scrollerTimer = new();
         private readonly DateTime start = DateTime.Now;
@@ -42,39 +37,46 @@ namespace WpfApp1
             AxislineColor = OxyColors.White
         };
 
+        private bool isEnabled = true;
+        private TimeSpan samplingInterval;
         private bool smoothScroll;
+        private TimeSpan visibleDuration;
 
-        public RealtimeMonitorViewModel()
+        internal RealtimeMonitorViewModel(RealtimeSampleOptions<T> options, IEnumerable<TimeSpan> visibleDurations,
+            IEnumerable<TimeSpan> samplingIntervals)
         {
-            Controller.UnbindAll();
+            this.options = options;
+            PossibleVisibleDurations = visibleDurations.ToList();
+            PossibleSamplingIntervals = samplingIntervals.ToList();
 
-            Model.Axes.Add(xAxis);
-            Model.Axes.Add(yAxis);
-            AreaSeries areaSeries = new()
-            {
-                ConstantY2 = -1000,
-                Fill = OxyColor.FromArgb(100, 52, 183, 235),
-                StrokeThickness = 2,
-                Color = OxyColor.FromRgb(52, 183, 235),
-                Color2 = OxyColors.Transparent,
-                Mapping = o =>
-                {
-                    (DateTime timestamp, double value) = (FauxData)o;
-                    double x = (timestamp - start).TotalSeconds;
+            VisibleDuration = PossibleVisibleDurations[0];
+            SamplingInterval = PossibleSamplingIntervals[0];
 
-                    return new DataPoint(x, value);
-                },
-                ItemsSource = data
-            };
-            Model.Series.Add(areaSeries);
+            data = new TimeBoundCollection<T>(options.GetTimestamp,
+                PossibleVisibleDurations.Max() + PossibleSamplingIntervals.Max());
+
+            InitializeController();
+            Series = InitializeModel().ToList();
 
             samplingTimer.Tick += Sample;
             scrollerTimer.Tick += UpdateScroll;
 
-            samplingTimer.Interval = samplingInterval;
-            samplingTimer.Start();
+            RefreshScrollerTimer();
+            RefreshSamplingTimer();
+        }
 
-            SetScrollerTimer();
+        private void RefreshSamplingTimer()
+        {
+            samplingTimer.Interval = SamplingInterval;
+            
+            if (IsEnabled)
+            {
+                samplingTimer.Start();
+            }
+            else
+            {
+                samplingTimer.Stop();
+            }
         }
 
         public bool SmoothScroll
@@ -83,7 +85,48 @@ namespace WpfApp1
             set
             {
                 if (SetProperty(ref smoothScroll, value))
-                    SetScrollerTimer();
+                    RefreshScrollerTimer();
+            }
+        }
+
+        public IReadOnlyList<TimeSpan> PossibleVisibleDurations { get; }
+
+        public TimeSpan VisibleDuration
+        {
+            get => visibleDuration;
+            set
+            {
+                if (SetProperty(ref visibleDuration, GetClosestFromList(PossibleVisibleDurations, value)))
+                {
+                    UpdateScroll(true);
+                }
+            }
+        }
+
+        public IReadOnlyList<TimeSpan> PossibleSamplingIntervals { get; }
+
+        public TimeSpan SamplingInterval
+        {
+            get => samplingInterval;
+            set
+            {
+                if (SetProperty(ref samplingInterval, GetClosestFromList(PossibleSamplingIntervals, value)))
+                {
+                    RefreshSamplingTimer();
+                }
+            }
+        }
+
+        public bool IsEnabled
+        {
+            get => isEnabled;
+            set
+            {
+                if (SetProperty(ref isEnabled, value))
+                {
+                    RefreshSamplingTimer();
+                    RefreshScrollerTimer();
+                }
             }
         }
 
@@ -91,11 +134,67 @@ namespace WpfApp1
 
         public PlotController Controller { get; } = new();
 
-        private void SetScrollerTimer()
+        public IReadOnlyList<RealtimeSeriesViewModel> Series { get; }
+
+        private void InitializeController()
+            => Controller.UnbindAll();
+
+        private IEnumerable<RealtimeSeriesViewModel> InitializeModel()
         {
-            if (SmoothScroll)
+            Model.Axes.Add(xAxis);
+            Model.Axes.Add(yAxis);
+
+            foreach (RealtimeSeriesOptions<T> seriesOptions in options.Series)
             {
-                scrollerTimer.Interval = TimeSpan.FromMilliseconds(35);
+                AreaSeries series = CreateSampleSeries(seriesOptions);
+                Model.Series.Add(series);
+
+                yield return new RealtimeSeriesViewModel(seriesOptions.Title, series);
+            }
+        }
+
+        private AreaSeries CreateSampleSeries(RealtimeSeriesOptions<T> seriesOptions)
+        {
+            AreaSeries areaSeries = new()
+            {
+                ConstantY2 = -1000,
+                //  Fill = OxyColor.FromArgb(100, 52, 183, 235),
+                StrokeThickness = 2,
+                //Color = OxyColor.FromRgb(52, 183, 235),
+                Color2 = OxyColors.Transparent,
+                Mapping = MapSampleToPoint,
+                ItemsSource = data
+            };
+
+            return areaSeries;
+
+            DataPoint MapSampleToPoint(object sample)
+            {
+                return GetDataPointFromSample(sample, seriesOptions);
+            }
+        }
+
+        private static TimeSpan GetClosestFromList(IEnumerable<TimeSpan> options, TimeSpan value)
+        {
+            // Use MinBy instead
+            return options.OrderBy(o => Math.Abs(o.TotalMilliseconds - value.TotalMilliseconds)).First();
+        }
+
+        private DataPoint GetDataPointFromSample(object sample, RealtimeSeriesOptions<T> seriesOptions)
+        {
+            DateTime timestamp = options.GetTimestamp(sample);
+            double x = (timestamp - start).TotalSeconds;
+            double y = seriesOptions.GetValueFromSample(sample);
+
+            return new DataPoint(x, y);
+        }
+
+        private void RefreshScrollerTimer()
+        {
+            scrollerTimer.Interval = TimeSpan.FromMilliseconds(35);
+
+            if (SmoothScroll && IsEnabled)
+            {
                 scrollerTimer.Start();
             }
             else
@@ -119,7 +218,7 @@ namespace WpfApp1
         {
             TimeSpan elapsed = DateTime.Now - start;
 
-            xAxis.Minimum = (elapsed - visibleDuration).TotalSeconds;
+            xAxis.Minimum = (elapsed - VisibleDuration).TotalSeconds;
             xAxis.Maximum = elapsed.TotalSeconds;
 
             if (invalidatePlot)
@@ -131,7 +230,8 @@ namespace WpfApp1
 
         private void Sample()
         {
-            data.Add(samplingCallback());
+            T sample = options.TakeSample();
+            data.Add(sample);
 
             if (!SmoothScroll)
                 UpdateScroll(false);

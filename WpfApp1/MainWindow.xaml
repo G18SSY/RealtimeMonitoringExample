@@ -6,18 +6,31 @@
         xmlns:local="clr-namespace:WpfApp1"
         xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
-        Background="#292929" Foreground="White">
-    <Window.DataContext>
-        <local:RealtimeMonitorViewModel/>
-    </Window.DataContext>
+        Title="Monitor Test" Height="600" Width="1000"
+        d:DataContext="{d:DesignInstance local:IRealtimeMonitorViewModel}">
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top"
-                    Orientation="Horizontal" HorizontalAlignment="Right"
+        <StackPanel DockPanel.Dock="Right"
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
                     Margin="10">
             <CheckBox IsChecked="{Binding SmoothScroll}">Smooth scroll</CheckBox>
+            <ComboBox Margin="5" Width="150"
+                      ItemsSource="{Binding PossibleVisibleDurations}" 
+                      SelectedItem="{Binding VisibleDuration}"/>
+            <ComboBox Margin="5" Width="150"
+                      ItemsSource="{Binding PossibleSamplingIntervals}" 
+                      SelectedItem="{Binding SamplingInterval}"/>
+            
+            <ItemsControl ItemsSource="{Binding Series}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Content="{Binding Title}" 
+                                  IsChecked="{Binding IsVisible}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
-        
-        <oxy:PlotView Background="#292929" Model="{Binding Model}" Controller="{Binding Controller}"/>
+
+        <oxy:PlotView Background="#292929" Model="{Binding Model}" Controller="{Binding Controller}" />
     </DockPanel>
 </Window>

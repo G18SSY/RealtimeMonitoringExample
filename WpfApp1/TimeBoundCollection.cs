@@ -8,15 +8,13 @@ namespace WpfApp1
 {
     public class TimeBoundCollection<T> : IReadOnlyCollection<T>
     {
-        public delegate DateTime TimestampAccessorDelegate(ref T value);
-
         private readonly SemaphoreSlim autoDequeueSemaphore = new(1);
         private readonly TimeSpan duration;
         private readonly ConcurrentQueue<T> queue = new();
 
-        private readonly TimestampAccessorDelegate timestampCallback;
+        private readonly Func<T, DateTime> timestampCallback;
 
-        public TimeBoundCollection(TimestampAccessorDelegate timestampCallback, TimeSpan duration)
+        public TimeBoundCollection(Func<T, DateTime> timestampCallback, TimeSpan duration)
         {
             this.timestampCallback = timestampCallback;
             this.duration = duration;
@@ -47,10 +45,12 @@ namespace WpfApp1
             {
                 DateTime timeout = DateTime.Now - duration;
 
-                while (!queue.IsEmpty && queue.TryPeek(out T peeked) && timestampCallback(ref peeked) < timeout)
+                while (!queue.IsEmpty && queue.TryPeek(out T? peeked) && timestampCallback(peeked) < timeout)
+                {
                     if (queue.TryDequeue(out _))
                         // If the dequeue failed for some reason then return otherwise we could get stuck in this loop
                         return;
+                }
             }
             finally
             {
