@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace WpfApp1.Wpf
+namespace RealtimeMonitoringExample.Wpf
 {
     public class Command : ICommand
     {

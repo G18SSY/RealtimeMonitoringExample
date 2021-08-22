@@ -6,9 +6,9 @@ using System.Windows.Threading;
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using WpfApp1.Wpf;
+using RealtimeMonitoringExample.Wpf;
 
-namespace WpfApp1
+namespace RealtimeMonitoringExample
 {
     public class RealtimeMonitorViewModel<T> : ViewModel, IRealtimeMonitorViewModel
         where T : notnull

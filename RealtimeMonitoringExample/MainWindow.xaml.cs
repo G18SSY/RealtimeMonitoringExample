@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WpfApp1
+namespace RealtimeMonitoringExample
 {
     /// <summary>
     ///     Interaction logic for MainWindow.xaml

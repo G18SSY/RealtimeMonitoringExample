@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace WpfApp1
+namespace RealtimeMonitoringExample
 {
     [PublicAPI]
     public class RealtimeSeriesOptions<T>

@@ -3,10 +3,10 @@ using System.Windows.Media;
 using MathNet.Numerics.Statistics;
 using OxyPlot;
 using OxyPlot.Wpf;
-using WpfApp1.Wpf;
+using RealtimeMonitoringExample.Wpf;
 using AreaSeries = OxyPlot.Series.AreaSeries;
 
-namespace WpfApp1
+namespace RealtimeMonitoringExample
 {
     public class RealtimeSeriesViewModel : ViewModel
     {

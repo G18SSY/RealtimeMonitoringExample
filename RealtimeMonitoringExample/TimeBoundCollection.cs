@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace WpfApp1
+namespace RealtimeMonitoringExample
 {
     public class TimeBoundCollection<T> : IReadOnlyCollection<T>
     {

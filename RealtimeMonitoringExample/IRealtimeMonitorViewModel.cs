@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using OxyPlot;
 
-namespace WpfApp1
+namespace RealtimeMonitoringExample
 {
     public interface IRealtimeMonitorViewModel
     {

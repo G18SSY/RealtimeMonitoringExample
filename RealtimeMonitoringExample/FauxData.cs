@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WpfApp1
+namespace RealtimeMonitoringExample
 {
     public record FauxData(DateTime Timestamp, double Upload, double Download)
     {

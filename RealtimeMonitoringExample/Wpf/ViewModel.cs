@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
-namespace WpfApp1.Wpf
+namespace RealtimeMonitoringExample.Wpf
 {
     public abstract class ViewModel : INotifyPropertyChanged
     {

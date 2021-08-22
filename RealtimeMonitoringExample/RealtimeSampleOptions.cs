@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WpfApp1
+namespace RealtimeMonitoringExample
 {
     public class RealtimeSampleOptions<T>
     {
