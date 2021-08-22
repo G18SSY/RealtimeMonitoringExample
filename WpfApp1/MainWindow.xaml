@@ -24,7 +24,7 @@
             <ItemsControl ItemsSource="{Binding Series}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderBrush="{Binding Color}"
+                        <Border BorderBrush="{Binding Brush}"
                                 BorderThickness="0 0 0 3"
                                 Margin="5">
                             <CheckBox IsChecked="{Binding IsVisible}">

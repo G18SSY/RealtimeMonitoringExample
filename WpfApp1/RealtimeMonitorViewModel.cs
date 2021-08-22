@@ -30,9 +30,7 @@ namespace WpfApp1
             LabelFormatter = Labeler,
             MajorStep = 5,
             Position = AxisPosition.Bottom,
-            TickStyle = TickStyle.None,
-            TextColor = OxyColors.White,
-            AxislineColor = OxyColors.White
+            TickStyle = TickStyle.None
         };
 
         private readonly Axis yAxis = new LinearAxis
@@ -42,8 +40,7 @@ namespace WpfApp1
             MajorStep = 2500,
             Minimum = 0,
             Maximum = 10000,
-            TextColor = OxyColors.White,
-            AxislineColor = OxyColors.White
+            MajorGridlineStyle = LineStyle.Solid
         };
 
         private bool isEnabled = true;
@@ -158,7 +155,7 @@ namespace WpfApp1
                 AreaSeries series = CreateSampleSeries(seriesOptions);
                 Model.Series.Add(series);
 
-                yield return new RealtimeSeriesViewModel(seriesOptions.Title, series);
+                yield return new RealtimeSeriesViewModel(seriesOptions.Title, series, Model);
             }
         }
 
