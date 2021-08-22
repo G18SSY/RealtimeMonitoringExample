@@ -1,5 +1,5 @@
 ﻿using System;
-using WpfApp1.Annotations;
+using JetBrains.Annotations;
 
 namespace WpfApp1
 {

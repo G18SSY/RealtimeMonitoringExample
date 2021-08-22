@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using WpfApp1.Annotations;
+using JetBrains.Annotations;
 
 namespace WpfApp1
 {
