@@ -10,6 +10,15 @@ namespace WpfApp1
 {
     public class RealtimeMonitorViewModel<T> : ViewModel, IRealtimeMonitorViewModel
     {
+        private readonly Queue<OxyColor> availableColors = new(GenerateColorOrder());
+
+        private static IEnumerable<OxyColor> GenerateColorOrder()
+        {
+            yield return OxyColor.Parse("#4575b4");
+            yield return OxyColor.Parse("#91bfdb");
+            yield return OxyColor.Parse("#e0f3f8");
+        }
+
         private readonly TimeBoundCollection<T> data;
         private readonly RealtimeSampleOptions<T> options;
         private readonly DispatcherTimer samplingTimer = new();
@@ -155,12 +164,14 @@ namespace WpfApp1
 
         private AreaSeries CreateSampleSeries(RealtimeSeriesOptions<T> seriesOptions)
         {
+            OxyColor color = availableColors.Dequeue();
+
             AreaSeries areaSeries = new()
             {
                 ConstantY2 = -1000,
-                //  Fill = OxyColor.FromArgb(100, 52, 183, 235),
+                Fill = OxyColor.FromArgb(30, color.R, color.G, color.B),
                 StrokeThickness = 2,
-                //Color = OxyColor.FromRgb(52, 183, 235),
+                Color = color,
                 Color2 = OxyColors.Transparent,
                 Mapping = MapSampleToPoint,
                 ItemsSource = data
@@ -191,7 +202,7 @@ namespace WpfApp1
 
         private void RefreshScrollerTimer()
         {
-            scrollerTimer.Interval = TimeSpan.FromMilliseconds(35);
+            scrollerTimer.Interval = TimeSpan.FromMilliseconds(20);
 
             if (SmoothScroll && IsEnabled)
             {

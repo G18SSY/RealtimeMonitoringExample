@@ -24,13 +24,28 @@
             <ItemsControl ItemsSource="{Binding Series}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <CheckBox Content="{Binding Title}" 
-                                  IsChecked="{Binding IsVisible}"/>
+                        <Border BorderBrush="{Binding Color}"
+                                BorderThickness="0 0 0 3"
+                                Margin="5">
+                            <CheckBox IsChecked="{Binding IsVisible}">
+                                <TextBlock Text="{Binding Title}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsVisible}" Value="true">
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </CheckBox>
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StackPanel>
 
-        <oxy:PlotView Background="#292929" Model="{Binding Model}" Controller="{Binding Controller}" />
+        <oxy:PlotView Model="{Binding Model}" Controller="{Binding Controller}" />
     </DockPanel>
 </Window>

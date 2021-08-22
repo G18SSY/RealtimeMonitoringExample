@@ -1,4 +1,6 @@
-﻿using OxyPlot.Series;
+﻿using System.Windows.Media;
+using OxyPlot.Wpf;
+using AreaSeries = OxyPlot.Series.AreaSeries;
 
 namespace WpfApp1
 {
@@ -27,5 +29,7 @@ namespace WpfApp1
                 }
             }
         }
+
+        public Brush Color => series.Color.ToBrush();
     }
 }
